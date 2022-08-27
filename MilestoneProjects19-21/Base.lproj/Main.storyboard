@@ -56,7 +56,7 @@
                     <navigationItem key="navigationItem" id="goA-gf-RWI"/>
                     <connections>
                         <outlet property="tableView" destination="wFe-Qi-nv1" id="zNT-L5-5BZ"/>
-                        <segue destination="qkP-kV-3Gu" kind="show" id="xfc-X3-DWX"/>
+                        <segue destination="qkP-kV-3Gu" kind="show" identifier="showNote" id="xfc-X3-DWX"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3kc-1J-Oan" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
