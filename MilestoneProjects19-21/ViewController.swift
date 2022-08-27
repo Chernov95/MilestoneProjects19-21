@@ -8,33 +8,48 @@
 import UIKit
 
 class Notes {
-    let notes = [Note]()
+    var notes = [Note]()
 }
 
 class Note {
-    let title = String()
-    let text = String()
+    var title = String()
+    var text = String()
 }
 
-class NotesTableViewController: UITableViewController {
+class NotesTableViewController: UIViewController {
     
-    let notes = [Note]()
+    var notes = [Note]()
+    
+    @IBOutlet var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.delegate = self
+        tableView.dataSource = self
     }
     
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        notes.count
-        5
+    @IBAction func addNewNote(_ sender: UIButton) {
+        let note = Note()
+        note.title = "New note"
+        note.text = ""
+        notes.append(note)
+        tableView.reloadData()
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+}
+
+extension NotesTableViewController : UITableViewDelegate, UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        notes.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "note", for: indexPath)
-        cell.textLabel?.text = "Hello world"
+        cell.textLabel?.text = notes[indexPath.row].title
         return cell
     }
-
 
 }
 
