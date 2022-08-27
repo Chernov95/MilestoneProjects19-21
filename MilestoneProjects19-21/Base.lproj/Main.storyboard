@@ -63,10 +63,10 @@
             </objects>
             <point key="canvasLocation" x="1555.072463768116" y="121.875"/>
         </scene>
-        <!--View Controller-->
+        <!--Note View Controller-->
         <scene sceneID="aYd-AP-kKp">
             <objects>
-                <viewController id="qkP-kV-3Gu" sceneMemberID="viewController">
+                <viewController id="qkP-kV-3Gu" customClass="NoteViewController" customModule="MilestoneProjects19_21" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="2do-ac-ecG">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -90,6 +90,9 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="aKs-Sr-qPQ"/>
+                    <connections>
+                        <outlet property="note" destination="zfB-dK-Kgg" id="B21-yI-FR5"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="JWT-EN-ATr" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

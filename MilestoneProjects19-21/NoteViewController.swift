@@ -8,11 +8,12 @@
 import UIKit
 
 class NoteViewController: UIViewController {
-
+    
+    @IBOutlet var note: UITextView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-
+        
     }
     
 

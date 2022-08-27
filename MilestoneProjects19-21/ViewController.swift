@@ -40,7 +40,8 @@ class NotesTableViewController: UIViewController {
         performSegue(withIdentifier: "showNote", sender: self)
     }
     
-
+  
+    
     @IBAction func addNewNote(_ sender: UIButton) {
         let note = Note(title: "New note", text: "")
         notes.append(note)
