@@ -40,15 +40,25 @@ class NotesTableViewController: UIViewController {
         performSegue(withIdentifier: "showNote", sender: self)
     }
     
-  
-    
     @IBAction func addNewNote(_ sender: UIButton) {
-        let note = Note(title: "New note", text: "")
-        notes.append(note)
-        let requestBody = Notes(notes: notes)
-        let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
-        saveJSONData(jsonString)
-        tableView.reloadData()
+        let ac = UIAlertController(title: "Name you note", message: nil, preferredStyle: .alert)
+        ac.addTextField()
+        ac.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self, weak ac] _ in
+            guard let nameOfTheNote = ac?.textFields?[0].text else {return}
+            let note = Note(title: nameOfTheNote, text: "")
+            self?.notes.append(note)
+            DispatchQueue.global().async {
+                guard let notes = self?.notes else {return}
+                let requestBody = Notes(notes: notes)
+                let jsonString = self?.convertObjectIntoJSONString(requestBody: requestBody)
+                self?.saveJSONData(jsonString)
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
+            }
+        }))
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(ac, animated: true)
     }
     
     func convertObjectIntoJSONString(requestBody : Notes) -> String? {
@@ -57,7 +67,6 @@ class NotesTableViewController: UIViewController {
         do {
             let result = try encoder.encode(requestBody)
             if let jsonString = String(data: result, encoding: .utf8) {
-                // JSON STRING
                 return jsonString
             }
         } catch {
@@ -76,7 +85,7 @@ class NotesTableViewController: UIViewController {
             do {
                 try jsonData.write(to: pathWithFileName)
             } catch {
-                // handle error
+                print("Failed to save JSON")
             }
         }
     }
