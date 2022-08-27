@@ -38,16 +38,18 @@ class NotesTableViewController: UIViewController {
     
     func loadJSON() {
         DispatchQueue.global().async {
-            if let url = Bundle.main.url(forResource: "notes", withExtension: "json") {
-                   do {
-                       let data = try Data(contentsOf: url)
-                       let decoder = JSONDecoder()
-                       let jsonData = try decoder.decode(Notes.self, from: data)
-                       self.notes = jsonData.notes
-                   } catch {
-                       print("error:\(error)")
-                   }
-               }
+            if let documentDirectory = FileManager.default.urls(for: .documentDirectory,
+                                                                 in: .userDomainMask).first {
+                let url = documentDirectory.appendingPathComponent("notes")
+                do {
+                    let data = try Data(contentsOf: url)
+                    let decoder = JSONDecoder()
+                    let jsonData = try decoder.decode(Notes.self, from: data)
+                    self.notes = jsonData.notes
+                } catch {
+                    print("error:\(error)")
+                }
+            }
         }
     }
     
@@ -59,10 +61,10 @@ class NotesTableViewController: UIViewController {
         encoder.outputFormatting = .prettyPrinted
         do {
             let result = try encoder.encode(requestBody)
-            // RESULT IS NOW JSON-LIKE DATA OBJECT
             if let jsonString = String(data: result, encoding: .utf8){
                 // JSON STRING
                 print("JSON \(jsonString)")
+                saveJSONData(jsonString)
             }
         } catch {
             print("Your parsing sucks \(error)")
@@ -70,7 +72,28 @@ class NotesTableViewController: UIViewController {
         tableView.reloadData()
     }
     
+    func convertObjectIntoJSONString(requestBody : Notes) -> String {
+        
+    }
+    
+    
+    func saveJSONData(_ jsonString: String) {
+        if let jsonData = jsonString.data(using: .utf8),
+            let documentDirectory = FileManager.default.urls(for: .documentDirectory,
+                                                             in: .userDomainMask).first {
+            let pathWithFileName = documentDirectory.appendingPathComponent("notes")
+            do {
+                try jsonData.write(to: pathWithFileName)
+            } catch {
+                // handle error
+            }
+        }
+    }
+    
+  
+    
 }
+
 
 extension NotesTableViewController : UITableViewDelegate, UITableViewDataSource {
     
