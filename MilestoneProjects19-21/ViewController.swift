@@ -26,6 +26,7 @@ class Note: Codable {
 class NotesTableViewController: UIViewController {
     
     var notes = [Note]()
+    var selectedIndexPathRow: Int?
     
     @IBOutlet var tableView: UITableView!
     
@@ -34,11 +35,37 @@ class NotesTableViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         loadJSON()
+        addingObserverSetup()
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        performSegue(withIdentifier: "showNote", sender: self)
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showNote" {
+            if let destinationVC =  segue.destination as? NoteViewController  {
+                guard let selectedIndexPathRow = selectedIndexPathRow else { return }
+                destinationVC.selectedIndexPathRow = selectedIndexPathRow
+                destinationVC.selectedText = notes[selectedIndexPathRow].text
+            }
+        }
     }
+    
+    func addingObserverSetup() {
+        let notificationCenter = NotificationCenter.default
+        let notificationName = Notification.Name("NotificationName")
+        notificationCenter.addObserver(self, selector: #selector(saveChangesToJSON(_:)), name: notificationName, object: nil)
+    }
+    
+    @objc func saveChangesToJSON(_ notification: NSNotification) {
+        guard let selectedIndexPathRowString = notification.userInfo?["selectedIndexPathRow"] as? String else { return }
+        guard let indexPathRow = Int(selectedIndexPathRowString) else { return }
+        guard let text = notification.userInfo?["note"] as? String else {return}
+        ///------------------
+        notes[indexPathRow].text = text
+        let requestBody = Notes(notes: notes)
+        let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
+        saveJSONData(jsonString)
+        tableView.reloadData()
+    }
+
     
     @IBAction func addNewNote(_ sender: UIButton) {
         let ac = UIAlertController(title: "Name you note", message: nil, preferredStyle: .alert)
@@ -61,34 +88,17 @@ class NotesTableViewController: UIViewController {
         present(ac, animated: true)
     }
     
-    func convertObjectIntoJSONString(requestBody : Notes) -> String? {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        do {
-            let result = try encoder.encode(requestBody)
-            if let jsonString = String(data: result, encoding: .utf8) {
-                return jsonString
-            }
-        } catch {
-            print("Your parsing sucks \(error)")
-        }
-        return nil
-    }
+
     
     
-    func saveJSONData(_ jsonString: String?) {
-        guard let jsonString = jsonString else { return }
-        if let jsonData = jsonString.data(using: .utf8),
-            let documentDirectory = FileManager.default.urls(for: .documentDirectory,
-                                                             in: .userDomainMask).first {
-            let pathWithFileName = documentDirectory.appendingPathComponent("notes")
-            do {
-                try jsonData.write(to: pathWithFileName)
-            } catch {
-                print("Failed to save JSON")
-            }
-        }
-    }
+
+    
+
+  
+    
+}
+
+extension NotesTableViewController {
     
     func loadJSON() {
         DispatchQueue.global().async {
@@ -110,7 +120,33 @@ class NotesTableViewController: UIViewController {
         }
     }
     
-  
+    func convertObjectIntoJSONString(requestBody : Notes) -> String? {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        do {
+            let result = try encoder.encode(requestBody)
+            if let jsonString = String(data: result, encoding: .utf8) {
+                return jsonString
+            }
+        } catch {
+            print("Your parsing sucks \(error)")
+        }
+        return nil
+    }
+    
+    func saveJSONData(_ jsonString: String?) {
+        guard let jsonString = jsonString else { return }
+        if let jsonData = jsonString.data(using: .utf8),
+            let documentDirectory = FileManager.default.urls(for: .documentDirectory,
+                                                             in: .userDomainMask).first {
+            let pathWithFileName = documentDirectory.appendingPathComponent("notes")
+            do {
+                try jsonData.write(to: pathWithFileName)
+            } catch {
+                print("Failed to save JSON")
+            }
+        }
+    }
     
 }
 
@@ -125,6 +161,12 @@ extension NotesTableViewController : UITableViewDelegate, UITableViewDataSource 
         let cell = tableView.dequeueReusableCell(withIdentifier: "note", for: indexPath)
         cell.textLabel?.text = notes[indexPath.row].title
         return cell
+    }
+    
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        selectedIndexPathRow = indexPath.row
+        performSegue(withIdentifier: "showNote", sender: self)
     }
 
 }
