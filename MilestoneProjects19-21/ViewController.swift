@@ -41,14 +41,16 @@ class NotesTableViewController: UIViewController {
     }
     
     @objc func saveChangesToJSON(_ notification: NSNotification) {
+        
+        // Update of notes and it's deletion
         guard let selectedIndexPathRowString = notification.userInfo?["selectedIndexPathRow"] as? String else { return }
         guard let indexPathRow = Int(selectedIndexPathRowString) else { return }
-        guard let text = notification.userInfo?["note"] as? String else {return}
-        if let deletionIsRequired = notification.userInfo?["deletetionIsRequired"] as? String {
-            if deletionIsRequired == "YES"{
+        if let deletionIsRequired = notification.userInfo?["deletetionIsRequired"] as? Bool {
+            if deletionIsRequired {
                 notes.remove(at: indexPathRow)
                 tableView.deleteRows(at: [IndexPath(row: indexPathRow, section: 0)], with: .automatic)
             }else{
+                guard let text = notification.userInfo?["note"] as? String else {return}
                 notes[indexPathRow].text = text
             }
         }
@@ -56,12 +58,20 @@ class NotesTableViewController: UIViewController {
         let requestBody = Notes(notes: notes)
         let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
         saveJSONData(jsonString)
-        
         tableView.reloadData()
+        
+        // Create new note
+        if let newNoteIsRequrested = notification.userInfo?["newNoteIsRequested"] as? Bool {
+            if newNoteIsRequrested {
+                addNewNote(self)
+            }
+        }
+        
+    
     }
 
     
-    @IBAction func addNewNote(_ sender: UIButton) {
+    @IBAction func addNewNote(_ sender: Any) {
         let ac = UIAlertController(title: "Name you note", message: nil, preferredStyle: .alert)
         ac.addTextField()
         ac.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self, weak ac] _ in
@@ -81,7 +91,6 @@ class NotesTableViewController: UIViewController {
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(ac, animated: true)
     }
-    
 }
 
 extension NotesTableViewController {
