@@ -7,21 +7,7 @@
 
 import UIKit
 
-class Notes: Codable {
-    var notes: [Note]
-    init (notes: [Note]) {
-        self.notes = notes
-    }
-}
 
-class Note: Codable {
-    var title: String
-    var text: String
-    init(title: String, text: String) {
-        self.title = title
-        self.text = text
-    }
-}
 
 class NotesTableViewController: UIViewController {
     
@@ -50,7 +36,7 @@ class NotesTableViewController: UIViewController {
     
     func addingObserverSetup() {
         let notificationCenter = NotificationCenter.default
-        let notificationName = Notification.Name("NotificationName")
+        let notificationName = Notification.Name("SaveChanges")
         notificationCenter.addObserver(self, selector: #selector(saveChangesToJSON(_:)), name: notificationName, object: nil)
     }
     
@@ -58,11 +44,19 @@ class NotesTableViewController: UIViewController {
         guard let selectedIndexPathRowString = notification.userInfo?["selectedIndexPathRow"] as? String else { return }
         guard let indexPathRow = Int(selectedIndexPathRowString) else { return }
         guard let text = notification.userInfo?["note"] as? String else {return}
+        if let deletionIsRequired = notification.userInfo?["deletetionIsRequired"] as? String {
+            if deletionIsRequired == "YES"{
+                notes.remove(at: indexPathRow)
+                tableView.deleteRows(at: [IndexPath(row: indexPathRow, section: 0)], with: .automatic)
+            }else{
+                notes[indexPathRow].text = text
+            }
+        }
         ///------------------
-        notes[indexPathRow].text = text
         let requestBody = Notes(notes: notes)
         let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
         saveJSONData(jsonString)
+        
         tableView.reloadData()
     }
 
@@ -87,14 +81,6 @@ class NotesTableViewController: UIViewController {
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(ac, animated: true)
     }
-    
-
-    
-    
-
-    
-
-  
     
 }
 
