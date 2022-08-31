@@ -22,6 +22,14 @@ class NoteViewController: UIViewController, UITextViewDelegate {
         super.viewDidLoad()
         note.delegate = self
         note.text = selectedText
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(compose))
+    }
+    
+    @objc func compose() {
+        guard let selectedText = selectedText else { return }
+        let vc = UIActivityViewController(activityItems: [selectedText], applicationActivities: [])
+        vc.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        present(vc, animated: true)
     }
     
     override func viewDidDisappear(_ animated: Bool) {

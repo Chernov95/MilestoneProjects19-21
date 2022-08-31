@@ -54,6 +54,7 @@ class NotesTableViewController: UIViewController {
                 notes[indexPathRow].text = text
             }
         }
+        
         ///------------------
         let requestBody = Notes(notes: notes)
         let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
@@ -66,8 +67,6 @@ class NotesTableViewController: UIViewController {
                 addNewNote(self)
             }
         }
-        
-    
     }
 
     
