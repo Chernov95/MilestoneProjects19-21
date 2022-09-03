@@ -46,7 +46,7 @@
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" image="square.and.pencil" catalog="system"/>
                                 <connections>
-                                    <action selector="addNewNote:" destination="2CH-kT-4jU" eventType="touchUpInside" id="UBY-KE-6DW"/>
+                                    <action selector="addNewNoteTapped:" destination="2CH-kT-4jU" eventType="touchUpInside" id="eav-Yg-Yud"/>
                                 </connections>
                             </button>
                         </subviews>

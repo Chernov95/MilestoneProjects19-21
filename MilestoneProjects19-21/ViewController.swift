@@ -24,51 +24,29 @@ class NotesTableViewController: UIViewController {
         addingObserverSetup()
     }
     
-    
     func addingObserverSetup() {
         let notificationCenter = NotificationCenter.default
-        let notificationName = Notification.Name("SaveChanges")
-        notificationCenter.addObserver(self, selector: #selector(saveChangesToJSON(_:)), name: notificationName, object: nil)
-        
+        //Note Editing
         let notificaionNameForSavingEditingChanges = Notification.Name("saveEditingChanges")
         notificationCenter.addObserver(self, selector: #selector(saveEditingChangesToJSON(_:)), name: notificaionNameForSavingEditingChanges, object: nil)
         
+        // New Note
+        let notificationNameForCreatingNewNote = Notification.Name("CreateNewNote")
+        notificationCenter.addObserver(self, selector: #selector(addNewNote(_:)), name: notificationNameForCreatingNewNote, object: nil)
+        
+        // Deletion
+        let notificationNameForDeletingNote = Notification.Name("DeleteNote")
+        notificationCenter.addObserver(self, selector: #selector(deleteNote(_:)), name: notificationNameForDeletingNote, object: nil)
     }
     
     @objc func saveEditingChangesToJSON(_ notification: NSNotification) {
         guard let indexPathRow = notification.userInfo?["selectedIndexPathRow"] as? Int else { return }
         guard let text = notification.userInfo?["text"] as? String else {return}
         notes[indexPathRow].text = text
-        let requestBody = Notes(notes: notes)
-        let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
-        saveJSONData(jsonString)
-        print("I am working here")
+        save()
     }
     
-    @objc func saveChangesToJSON(_ notification: NSNotification) {
-        // Update of notes and it's deletion
-        guard let indexPathRow = notification.userInfo?["selectedIndexPathRow"] as? Int else { return }
-        if let deletionIsRequired = notification.userInfo?["deletetionIsRequired"] as? Bool {
-            if deletionIsRequired {
-                notes.remove(at: indexPathRow)
-                tableView.deleteRows(at: [IndexPath(row: indexPathRow, section: 0)], with: .automatic)
-            }
-        }
-        ///------------------
-        let requestBody = Notes(notes: notes)
-        let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
-        saveJSONData(jsonString)
-        tableView.reloadData()
-        // Create new note
-        if let newNoteIsReqested = notification.userInfo?["newNoteIsRequested"] as? Bool {
-            if newNoteIsReqested {
-                addNewNote(self)
-            }
-        }
-    }
-
-    
-    @IBAction func addNewNote(_ sender: Any) {
+    @objc func addNewNote(_ notification: NSNotification? = nil) {
         let ac = UIAlertController(title: "Name you note", message: nil, preferredStyle: .alert)
         ac.addTextField()
         ac.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self, weak ac] _ in
@@ -76,10 +54,7 @@ class NotesTableViewController: UIViewController {
             let note = Note(title: nameOfTheNote, text: "")
             self?.notes.append(note)
             DispatchQueue.global().async {
-                guard let notes = self?.notes else {return}
-                let requestBody = Notes(notes: notes)
-                let jsonString = self?.convertObjectIntoJSONString(requestBody: requestBody)
-                self?.saveJSONData(jsonString)
+                self?.save()
                 DispatchQueue.main.async {
                     self?.tableView.reloadData()
                 }
@@ -89,18 +64,26 @@ class NotesTableViewController: UIViewController {
         present(ac, animated: true)
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showNote" {
-            if let destinationVC =  segue.destination as? NoteViewController  {
-                guard let selectedIndexPathRow = selectedIndexPathRow else { return }
-                destinationVC.selectedIndexPathRow = selectedIndexPathRow
-                destinationVC.selectedText = notes[selectedIndexPathRow].text
-            }
-        }
+    @objc func deleteNote(_ notification: NSNotification) {
+        guard let indexPathRow = notification.userInfo?["selectedIndexPathRow"] as? Int else { return }
+        notes.remove(at: indexPathRow)
+        tableView.deleteRows(at: [IndexPath(row: indexPathRow, section: 0)], with: .automatic)
+        save()
     }
+
+    @IBAction func addNewNoteTapped(_ sender: Any) {
+        addNewNote(nil)
+    }
+    
 }
 
 extension NotesTableViewController {
+    
+    func save() {
+        let requestBody = Notes(notes: notes)
+        let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
+        saveJSONData(jsonString)
+    }
     
     func loadJSON() {
         DispatchQueue.global().async {
@@ -167,6 +150,16 @@ extension NotesTableViewController : UITableViewDelegate, UITableViewDataSource 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         selectedIndexPathRow = indexPath.row
         performSegue(withIdentifier: "showNote", sender: self)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showNote" {
+            if let destinationVC =  segue.destination as? NoteViewController  {
+                guard let selectedIndexPathRow = selectedIndexPathRow else { return }
+                destinationVC.selectedIndexPathRow = selectedIndexPathRow
+                destinationVC.selectedText = notes[selectedIndexPathRow].text
+            }
+        }
     }
 
 }
