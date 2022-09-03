@@ -35,7 +35,7 @@ class NoteViewController: UIViewController, UITextViewDelegate {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(true)
         guard let selectedIndexPathRow = selectedIndexPathRow else { return }
-        let noteData:[String: Any] = ["selectedIndexPathRow": String(selectedIndexPathRow), "note": note.text as Any, "deletetionIsRequired" : deletionIsRequired, "newNoteIsRequested" : newNoteIsRequested]
+        let noteData:[String: Any] = ["selectedIndexPathRow": selectedIndexPathRow, "deletetionIsRequired" : deletionIsRequired, "newNoteIsRequested" : newNoteIsRequested]
         let notificationName = Notification.Name("SaveChanges")
         notificationCenter.post(name: notificationName, object: nil, userInfo: noteData)
     }
@@ -48,6 +48,13 @@ class NoteViewController: UIViewController, UITextViewDelegate {
         newNoteIsRequested = true
         navigationController?.popToRootViewController(animated: true)
     }
+    
+    func textViewDidChange(_ textView: UITextView) {
+        let notificationName = Notification.Name("saveEditingChanges")
+        let textData: [String : Any] = ["selectedIndexPathRow" : selectedIndexPathRow as Any, "text":note.text as Any]
+        notificationCenter.post(name: notificationName, object: nil, userInfo: textData)
+    }
+
     
 
 }

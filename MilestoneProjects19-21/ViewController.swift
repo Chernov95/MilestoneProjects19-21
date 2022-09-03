@@ -24,46 +24,44 @@ class NotesTableViewController: UIViewController {
         addingObserverSetup()
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showNote" {
-            if let destinationVC =  segue.destination as? NoteViewController  {
-                guard let selectedIndexPathRow = selectedIndexPathRow else { return }
-                destinationVC.selectedIndexPathRow = selectedIndexPathRow
-                destinationVC.selectedText = notes[selectedIndexPathRow].text
-            }
-        }
-    }
     
     func addingObserverSetup() {
         let notificationCenter = NotificationCenter.default
         let notificationName = Notification.Name("SaveChanges")
         notificationCenter.addObserver(self, selector: #selector(saveChangesToJSON(_:)), name: notificationName, object: nil)
+        
+        let notificaionNameForSavingEditingChanges = Notification.Name("saveEditingChanges")
+        notificationCenter.addObserver(self, selector: #selector(saveEditingChangesToJSON(_:)), name: notificaionNameForSavingEditingChanges, object: nil)
+        
+    }
+    
+    @objc func saveEditingChangesToJSON(_ notification: NSNotification) {
+        guard let indexPathRow = notification.userInfo?["selectedIndexPathRow"] as? Int else { return }
+        guard let text = notification.userInfo?["text"] as? String else {return}
+        notes[indexPathRow].text = text
+        let requestBody = Notes(notes: notes)
+        let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
+        saveJSONData(jsonString)
+        print("I am working here")
     }
     
     @objc func saveChangesToJSON(_ notification: NSNotification) {
-        
         // Update of notes and it's deletion
-        guard let selectedIndexPathRowString = notification.userInfo?["selectedIndexPathRow"] as? String else { return }
-        guard let indexPathRow = Int(selectedIndexPathRowString) else { return }
+        guard let indexPathRow = notification.userInfo?["selectedIndexPathRow"] as? Int else { return }
         if let deletionIsRequired = notification.userInfo?["deletetionIsRequired"] as? Bool {
             if deletionIsRequired {
                 notes.remove(at: indexPathRow)
                 tableView.deleteRows(at: [IndexPath(row: indexPathRow, section: 0)], with: .automatic)
-            }else{
-                guard let text = notification.userInfo?["note"] as? String else {return}
-                notes[indexPathRow].text = text
             }
         }
-        
         ///------------------
         let requestBody = Notes(notes: notes)
         let jsonString = convertObjectIntoJSONString(requestBody: requestBody)
         saveJSONData(jsonString)
         tableView.reloadData()
-        
         // Create new note
-        if let newNoteIsRequrested = notification.userInfo?["newNoteIsRequested"] as? Bool {
-            if newNoteIsRequrested {
+        if let newNoteIsReqested = notification.userInfo?["newNoteIsRequested"] as? Bool {
+            if newNoteIsReqested {
                 addNewNote(self)
             }
         }
@@ -89,6 +87,16 @@ class NotesTableViewController: UIViewController {
         }))
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(ac, animated: true)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showNote" {
+            if let destinationVC =  segue.destination as? NoteViewController  {
+                guard let selectedIndexPathRow = selectedIndexPathRow else { return }
+                destinationVC.selectedIndexPathRow = selectedIndexPathRow
+                destinationVC.selectedText = notes[selectedIndexPathRow].text
+            }
+        }
     }
 }
 
@@ -131,8 +139,7 @@ extension NotesTableViewController {
     func saveJSONData(_ jsonString: String?) {
         guard let jsonString = jsonString else { return }
         if let jsonData = jsonString.data(using: .utf8),
-            let documentDirectory = FileManager.default.urls(for: .documentDirectory,
-                                                             in: .userDomainMask).first {
+            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let pathWithFileName = documentDirectory.appendingPathComponent("notes")
             do {
                 try jsonData.write(to: pathWithFileName)
@@ -141,7 +148,6 @@ extension NotesTableViewController {
             }
         }
     }
-    
 }
 
 
