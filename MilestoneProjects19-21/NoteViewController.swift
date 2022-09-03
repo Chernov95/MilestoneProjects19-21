@@ -26,8 +26,8 @@ class NoteViewController: UIViewController, UITextViewDelegate {
     }
     
     @objc func compose() {
-        guard let selectedText = selectedText else { return }
-        let vc = UIActivityViewController(activityItems: [selectedText], applicationActivities: [])
+        guard let text = note.text else { return }
+        let vc = UIActivityViewController(activityItems: [text], applicationActivities: [])
         vc.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         present(vc, animated: true)
     }
